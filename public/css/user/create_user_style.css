@@ -1,0 +1,25 @@
+.profile-container {
+  width: 150px;
+  height: 150px;
+  border: 1px solid #ccc;
+  margin-top: 15px;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.user-error-box {
+  background-color: #ffd2d2;
+  margin-bottom: 20px;
+  padding: 10px 20px;
+}
+
+.user-error-message {
+  display: block;
+  font-size: 1em;
+  color: #d8000c;
+  padding: 2px 0;
+}
