@@ -20,6 +20,11 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::post('/auth/login', 'api\AuthApiController@login');
 
+Route::middleware('auth:api')->get('/user/list', 'api\UserApiController@getUserList');
+
+Route::middleware('auth:api')->delete('/user/delete', 'api\UserApiController@deleteUser');
+
+
 Route::middleware('auth:api')->get('/post/list', 'api\PostApiController@getPostList');
 
 Route::middleware('auth:api')->post('/post/create', 'api\PostApiController@createPost');

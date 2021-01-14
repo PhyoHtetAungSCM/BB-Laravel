@@ -38,7 +38,7 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    public function getUserName()
+    public function user()
     {
         return $this->belongsTo('App\User', 'create_user_id', 'id');
     }
