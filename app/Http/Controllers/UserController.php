@@ -108,6 +108,7 @@ class UserController extends Controller
      */
     public function createUserConfirm(Request $request)
     {
+        dd($request);
         $request->validate([
             'name' => 'required|string|unique:users,name',
             'email'   => 'required|email',

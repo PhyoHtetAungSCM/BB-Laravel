@@ -22,7 +22,11 @@ Route::post('/auth/login', 'api\AuthApiController@login');
 
 Route::middleware('auth:api')->get('/user/list', 'api\UserApiController@getUserList');
 
-Route::middleware('auth:api')->delete('/user/delete', 'api\UserApiController@deleteUser');
+Route::middleware('auth:api')->post('/user/delete', 'api\UserApiController@deleteUser');
+
+Route::middleware('auth:api')->post('/user/create-confirm', 'api\UserApiController@createUserConfirm');
+
+Route::middleware('auth:api')->post('/user/create', 'api\UserApiController@createUser');
 
 
 Route::middleware('auth:api')->get('/post/list', 'api\PostApiController@getPostList');
@@ -35,4 +39,4 @@ Route::middleware('auth:api')->post('/post/update', 'api\PostApiController@updat
 
 Route::middleware('auth:api')->post('/post/update-confirm', 'api\PostApiController@updatePostConfirm');
 
-Route::middleware('auth:api')->delete('/post/delete/{id}', 'api\PostApiController@deletePost');
+Route::middleware('auth:api')->post('/post/delete', 'api\PostApiController@deletePost');

@@ -60,7 +60,6 @@ class UserDao implements UserDaoInterface
     {
         /** Retrieve data from session */
         $sessionUser = session()->get('create-user');
-
         /** Remove Session */
         session()->forget('create-user');
 

@@ -25,11 +25,11 @@ class PostApiController extends Controller
         return response()->json($data, 200);
     }
 
-    public function deletePost($id)
+    public function deletePost(Request $request)
     {
-        $deletePost = Post::find($id);
+        $deletePost = Post::find($request->postID);
         $deletePost->status = 0;
-        $deletePost->deleted_user_id = Auth::id();
+        $deletePost->deleted_user_id = $request->authID;
         $deletePost->deleted_at = Carbon::now();
         $result = $deletePost->save();
         return response()->json($result, 200);
