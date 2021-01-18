@@ -18,12 +18,10 @@ class CreateUsersTable extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->string('password');
-            $table->string('profile')->nullable();
             $table->integer('type')->default('1');
-            $table->string('phone')->nullable();
-            $table->date('dob')->format('Y/m/d')->nullable();
-            $table->string('address')->nullable();
-
+            $table->string('profile');
+            $table->string('profile_path');
+            
             $table->integer('create_user_id');
             $table->integer('updated_user_id');
             $table->integer('deleted_user_id')->nullable();

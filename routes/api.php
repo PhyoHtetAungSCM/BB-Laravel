@@ -28,6 +28,10 @@ Route::middleware('auth:api')->post('/user/create-confirm', 'api\UserApiControll
 
 Route::middleware('auth:api')->post('/user/create', 'api\UserApiController@createUser');
 
+Route::middleware('auth:api')->post('/user/update-confirm', 'api\UserApiController@updateUserConfirm');
+
+Route::middleware('auth:api')->post('/user/update', 'api\UserApiController@updateUser');
+
 
 Route::middleware('auth:api')->get('/post/list', 'api\PostApiController@getPostList');
 

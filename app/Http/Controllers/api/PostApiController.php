@@ -42,10 +42,7 @@ class PostApiController extends Controller
             'description'   => 'required|string'
         ]);
 
-        $data['title'] = $request->title;
-        $data['description'] = $request->description;
-
-        return response()->json($data, 200);
+        return response()->json($request, 200);
     }
 
     public function createPost(Request $request)
