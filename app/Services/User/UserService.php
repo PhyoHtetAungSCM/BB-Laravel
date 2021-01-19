@@ -39,9 +39,9 @@ class UserService implements UserServiceInterface
      *
      * @return userDao's getUserProfile function
      */
-    public function userProfile()
+    public function userProfile($id)
     {
-        return $this->userDao->userProfile();
+        return $this->userDao->userProfile($id);
     }
 
     /**
@@ -79,9 +79,9 @@ class UserService implements UserServiceInterface
      *
      * @return userDao's updateUser function
      */
-    public function updateUser($request, $id)
+    public function updateUser($request)
     {
-        return $this->userDao->updateUser($request, $id);
+        return $this->userDao->updateUser($request);
     }
 
     public function updateUserConfirm($request, $id)

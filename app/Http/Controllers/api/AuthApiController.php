@@ -21,4 +21,13 @@ class AuthApiController extends Controller
             return response()->json(['error'=>'Unauthorised'], 401);
         }
     }
+
+    public function logout(Request $request)
+    {
+        Auth::user()->tokens->each(function($token, $key) {
+            $token->delete();
+        });
+
+        return response()->json('Successfully logged out');
+    }
 }

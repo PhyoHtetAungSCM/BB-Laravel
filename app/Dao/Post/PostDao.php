@@ -23,56 +23,17 @@ class PostDao implements PostDaoInterface
      * @param $request
      * @return post list ($postList)
      */
-    public function getPostList($request)
+    public function getPostList()
     {
-        $search =  $request->input('search');
+        // all active post
+        $activePost = Post::with('user')->where('status', 1)->get();
+        // inactive but not deleted
+        $inactivePost = Post::with('user')->where('status', 0)
+                        ->where('create_user_id', Auth::id())
+                        ->where('deleted_user_id', null)->get();
 
-        /** If input's name(search) exists */
-        if ($search != "") {
-            $activePost = Post::orderBy('id', 'desc')->where('status', 1)
-                            ->whereHas('user', function ($query) use ($search) {
-                                $query->where('title', 'like', "%{$search}%");
-                                $query->orWhere('description', 'like', "%{$search}%");
-                                $query->orWhere('name', 'like', "%{$search}%");
-                            })->get();
-
-            $inactivePost = Post::where('status', 0)
-                            ->where('create_user_id', Auth::id())
-                            ->where('deleted_user_id', null)
-                            ->whereHas('user', function ($query) use ($search) {
-                                $query->where('title', 'like', "%{$search}%");
-                                $query->orWhere('description', 'like', "%{$search}%");
-                                $query->orWhere('name', 'like', "%{$search}%");
-                            })->get();
-        
-            $postList = $activePost->merge($inactivePost);
-            $postList = $this->paginate($postList);
-            $postList->appends(['search' => $search]);
-        } else {
-            /** All active post */
-            $activePost = Post::orderBy('id', 'desc')->where('status', 1)->get();
-
-            /** Inactive but not deleted */
-            $inactivePost = Post::where('status', 0)
-                            ->where('create_user_id', Auth::id())
-                            ->where('deleted_user_id', null)->get();
-
-            $postList = $activePost->merge($inactivePost);
-            $postList =$this->paginate($postList);
-        }
+        $postList = $activePost->merge($inactivePost);
         return $postList;
-    }
-
-    /**
-     * Get Update Post
-     *
-     * @param $id
-     * @return updated post ($post)
-     */
-    public function getUpdatePost($id)
-    {
-        $post = Post::find($id);
-        return $post;
     }
 
     /**
@@ -83,20 +44,11 @@ class PostDao implements PostDaoInterface
      */
     public function createPost($request)
     {
-        /** Retrieve data from session */
-        $sessionPost = session()->get('create-post');
-
-        /** Remove Session */
-        session()->forget('create-post');
-
-        /** Save data into database */
         $post = new Post();
-        $post->title = $sessionPost['title'];
-        $post->description = $sessionPost['description'];
-        $post->create_user_id = Auth::id();
-        $post->updated_user_id = Auth::id();
-        $post->created_at = Carbon::now();
-        $post->updated_at = Carbon::now();
+        $post->title = $request->title;
+        $post->description = $request->description;
+        $post->create_user_id = $request->authID;
+        $post->updated_user_id = $request->authID;
         return $post->save();
     }
 
@@ -107,24 +59,13 @@ class PostDao implements PostDaoInterface
      * @param $id
      * @return updated post response
      */
-    public function updatePost($request, $id)
+    public function updatePost($request)
     {
-        /** Retrieve data from session */
-        $sessionPost = session()->get('update-post');
-
-        /** Remove Session */
-        session()->forget('update-post');
-
-        /** Save data into database */
-        $updatePost = Post::find($id);
-        $updatePost->title = $sessionPost['title'];
-        $updatePost->description = $sessionPost['description'];
-        if ($request->status) {
-            $updatePost->status = 1;
-        } else {
-            $updatePost->status = 0;
-        }
-        $updatePost->updated_user_id = Auth::id();
+        $updatePost = Post::find($request->id);
+        $updatePost->title = $request->title;
+        $updatePost->description = $request->description;
+        $updatePost->create_user_id = $request->authID;
+        $updatePost->updated_user_id = $request->authID;
         $updatePost->updated_at = Carbon::now();
         return $updatePost->save();
     }
@@ -137,22 +78,21 @@ class PostDao implements PostDaoInterface
      */
     public function deletePost($request)
     {
-        $deletePost = Post::find($request->input('deletePostId'));
+        $deletePost = Post::find($request->postID);
         $deletePost->status = 0;
-        $deletePost->deleted_user_id = Auth::id();
+        $deletePost->deleted_user_id = $request->authID;
         $deletePost->deleted_at = Carbon::now();
         return $deletePost->save();
     }
 
-    /**
-     * Collection Pagination
-     *
-     * @param $items
-     * @param $perPage
-     * @param $page
-     * @param $options[]
-     * @return new LengthAwarePaginator object
-     */
+    /** < web.php > */
+    public function getUpdatePost($id)
+    {
+        $post = Post::find($id);
+        return $post;
+    }
+
+    /** < web.php > */
     public function paginate($items, $perPage = 5, $page = null, $options = [])
     {
         $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);

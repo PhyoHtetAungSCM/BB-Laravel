@@ -6,15 +6,15 @@ interface UserDaoInterface
 {
     public function getUserList();
 
-    public function getUpdateUser($id);
+    public function userProfile($id);
 
-    public function userProfile();
+    public function getUpdateUser($id);
 
     public function createUser($request);
 
     public function searchUser($keyword);
 
-    public function updateUser($request, $id);
+    public function updateUser($request);
 
     public function updateUserConfirm($request, $id);
 

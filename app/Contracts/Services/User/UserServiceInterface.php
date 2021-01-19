@@ -6,7 +6,7 @@ interface UserServiceInterface
 {
     public function getUserList();
 
-    public function userProfile();
+    public function userProfile($id);
 
     public function getUpdateUser($id);
 
@@ -14,7 +14,7 @@ interface UserServiceInterface
 
     public function searchUser($keyword);
 
-    public function updateUser($request, $id);
+    public function updateUser($request);
 
     public function updateUserConfirm($request, $id);
 

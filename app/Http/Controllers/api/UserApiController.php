@@ -2,34 +2,46 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Http\Controllers\Controller;
 use App\User;
+use App\Http\Controllers\Controller;
+use App\Contracts\Services\User\UserServiceInterface;
+
 use Carbon\Carbon;
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
 class UserApiController extends Controller
 {
+    /** User Interface */
+    private $userInterface;
+
+    /**
+    * Create a new controller instance.
+    *
+    * @return void
+    */
+    public function __construct(UserServiceInterface $userInterface)
+    {
+        $this->userInterface = $userInterface;
+    }
+    
     public function getUserList()
     {
-        $data = User::with('user')->whereNull('deleted_user_id')->get();
+        $data = $this->userInterface->getUserList();
         return response()->json($data, 200);
     }
 
-    public function deleteUser(Request $request)
+    public function getUserProfile($id)
     {
-        $user = User::find($request->userID);
-        $user->deleted_user_id = $request->authID;
-        $user->deleted_at = Carbon::now();
-        $user->save();
-        return response()->json("Successful", 200);
+        $data = $this->userInterface->userProfile($id);
+        return response()->json($data, 200);
     }
 
     public function createUserConfirm(Request $request)
     {
-        /** \Log::info($request->all()); [Logging Error] */
-
+        /** \Log::info($request->all()); */
         $request->validate([
             'name' => 'required|string|unique:users,name',
             'email'   => 'required|email|unique:users,email',
@@ -37,42 +49,13 @@ class UserApiController extends Controller
             'type' => 'required',
             'profile' => 'required'
         ]);
-
         return response()->json($request, 200);
     }
 
     public function createUser(Request $request)
     {
-        /** \Log::info($request->all()); [Logging Error] */
-        
-        $exploded = explode(',', $request->profile);
-        $decoded = base64_decode($exploded[1]);
-        
-        if (str_contains($exploded[0], 'jpeg')) {
-            $extension = 'jpg';
-        } else {
-            $extension = 'png';
-        }
-
-        $fileName = time().'.'.$extension;
-
-        $path = public_path().'/images/'.$fileName;
-
-        file_put_contents($path, $decoded);
-
-        $user = new User();
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->password = bcrypt($request->password);
-        $user->type = $request->type;
-        $user->profile = $fileName;
-        $user->profile_path = env('APP_URL') . '/images/' . $fileName;
-        $user->create_user_id = $request->authID;
-        $user->updated_user_id = $request->authID;
-        $user->created_at = Carbon::now();
-        $user->updated_at = Carbon::now();
-        $result = $user->save();
-
+        /** \Log::info($request->all()); */
+        $result = $this->userInterface->createUser($request);
         return response()->json($result, 200);
     }
 
@@ -83,49 +66,37 @@ class UserApiController extends Controller
             'email'   => 'required|email|unique:users,email,'.$request->id,
             'type' => 'required',
         ]);
-        // $user = User::find($request->id);
-        // $user->name = $request->name;
-        // $user->email = $request->email;
-        // $user->type = $request->type;
-        // if($requuest->profile != null) {
-        //     $user->profile = $request->profile;
-        // } else {
-        //     $user->profile = null
-        // }
-
         return response()->json($request, 200);
     }
 
     public function updateUser(Request $request)
     {
-        \Log::info($request->all());
-        $user = User::find($request->id);
-        $user->name = $request->name;
-        $user->email = $request->email;
-        $user->type = $request->type;
+        /** \Log::info($request->all()); */
+        $result = $this->userInterface->updateUser($request);
+        return response()->json($result, 200);
+    }
 
-        if ($request->profile) {
-            $exploded = explode(',', $request->profile);
-            $decoded = base64_decode($exploded[1]);
-            
-            if (str_contains($exploded[0], 'jpeg')) {
-                $extension = 'jpg';
-            } else {
-                $extension = 'png';
-            }
+    public function deleteUser(Request $request)
+    {
+        $result = $this->userInterface->deleteUser($request);
+        return response()->json($result, 200);
+    }
 
-            $fileName = time().'.'.$extension;
-            $path = public_path().'/images/'.$fileName;
-            file_put_contents($path, $decoded);
-
-            $user->profile = $fileName;
-            $user->profile_path = env('APP_URL') . '/images/' . $fileName;
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'old_password' => 'required|min:6',
+            'new_password' => 'required|min:6',
+            'password_confirmation' => 'required|same:new_password'
+        ]);
+        $user = User::find($request->userID);
+        if (!Hash::check($request->old_password, $user->password)) {
+            return response()->json(['message' => 'The old password field is incorrect'], 422);
         }
-        
-        $user->updated_user_id = $request->authID;
+        $user->password = Hash::make($request->new_password);
+        $user->updated_user_id = $request->userID;
         $user->updated_at = Carbon::now();
-        $data = $user->save();
-
-        return response()->json($data, 200);
+        $result = $user->save();
+        return response()->json($result, 200);
     }
 }

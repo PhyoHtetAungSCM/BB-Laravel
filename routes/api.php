@@ -20,7 +20,11 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
 
 Route::post('/auth/login', 'api\AuthApiController@login');
 
+Route::middleware('auth:api')->post('/auth/logout', 'api\AuthApiController@logout');
+
 Route::middleware('auth:api')->get('/user/list', 'api\UserApiController@getUserList');
+
+Route::middleware('auth:api')->get('/user/profile/{id}', 'api\UserApiController@getUserProfile');
 
 Route::middleware('auth:api')->post('/user/delete', 'api\UserApiController@deleteUser');
 
@@ -32,8 +36,12 @@ Route::middleware('auth:api')->post('/user/update-confirm', 'api\UserApiControll
 
 Route::middleware('auth:api')->post('/user/update', 'api\UserApiController@updateUser');
 
+Route::middleware('auth:api')->post('/user/change-password', 'api\UserApiController@changePassword');
+
 
 Route::middleware('auth:api')->get('/post/list', 'api\PostApiController@getPostList');
+
+Route::middleware('auth:api')->get('/post/download', 'api\PostApiController@download');
 
 Route::middleware('auth:api')->post('/post/create', 'api\PostApiController@createPost');
 

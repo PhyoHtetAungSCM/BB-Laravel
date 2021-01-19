@@ -4,13 +4,15 @@ namespace App\Contracts\Services\Post;
 
 interface PostServiceInterface
 {
-    public function getPostList($request);
-
-    public function getUpdatePost($id);
+    /** Api.php */
+    public function getPostList();
 
     public function createPost($request);
 
-    public function updatePost($request, $id);
+    public function updatePost($request);
 
     public function deletePost($request);
+
+    /** Web.php */
+    public function getUpdatePost($id);
 }

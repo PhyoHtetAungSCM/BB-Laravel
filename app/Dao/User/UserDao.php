@@ -22,20 +22,8 @@ class UserDao implements UserDaoInterface
      */
     public function getUserList()
     {
-        $userList = User::orderBy('id', 'desc')->whereNull('deleted_user_id')->paginate(5);
+        $userList = User::with('user')->whereNull('deleted_user_id')->get();
         return $userList;
-    }
-
-    /**
-     * Get Updated User
-     *
-     * @param $id
-     * @return updated user ($user)
-     */
-    public function getUpdateUser($id)
-    {
-        $user = User::find($id);
-        return $user;
     }
 
     /**
@@ -43,10 +31,9 @@ class UserDao implements UserDaoInterface
      *
      * @return user detail ($userProfile)
      */
-    public function userProfile()
+    public function userProfile($id)
     {
-        $authId = Auth::id();
-        $userProfile = User::find($authId);
+        $userProfile = User::find($id);
         return $userProfile;
     }
 
@@ -58,49 +45,31 @@ class UserDao implements UserDaoInterface
      */
     public function createUser($request)
     {
-        /** Retrieve data from session */
-        $sessionUser = session()->get('create-user');
-        /** Remove Session */
-        session()->forget('create-user');
+        $exploded = explode(',', $request->profile);
+        $decoded = base64_decode($exploded[1]);
+        
+        if (str_contains($exploded[0], 'jpeg')) {
+            $extension = 'jpg';
+        } else {
+            $extension = 'png';
+        }
 
-        /** Save data into database */
+        $fileName = time().'.'.$extension;
+        $path = public_path().'/images/'.$fileName;
+        file_put_contents($path, $decoded);
+
         $user = new User();
-        $user->name = $sessionUser['name'];
-        $user->email = $sessionUser['email'];
-        $user->password = Hash::make($sessionUser['password']);
-        $user->type = $sessionUser['type'];
-        $user->phone = $sessionUser['phone'];
-        $user->address = $sessionUser['address'];
-        $user->dob = $sessionUser['dob'];
-        $user->profile = $sessionUser['profile'];
-        $user->create_user_id = Auth::id();
-        $user->updated_user_id = Auth::id();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->type = $request->type;
+        $user->profile = $fileName;
+        $user->profile_path = env('APP_URL') . '/images/' . $fileName;
+        $user->create_user_id = $request->authID;
+        $user->updated_user_id = $request->authID;
         $user->created_at = Carbon::now();
         $user->updated_at = Carbon::now();
         return $user->save();
-    }
-
-    /**
-     * Search User
-     *
-     * @param $keyword
-     * @return search result ($userList)
-     */
-    public function searchUser($keyword)
-    {
-        $userList = User::orderBy('id', 'desc')
-                    ->whereNull('deleted_user_id')
-                    ->where('name', 'like', "%{$keyword->name}%")
-                    ->when($keyword->email, function ($query) use ($keyword) {
-                        $query->where('email', 'like', "%{$keyword->email}%");
-                    })
-                    ->when($keyword->created_from, function ($query) use ($keyword) {
-                        $query->where('created_at', '=', $keyword->created_from);
-                    })
-                    ->when($keyword->created_to, function ($query) use ($keyword) {
-                        $query->where('updated_at', '=', $keyword->created_to);
-                    })->paginate(5);
-        return $userList;
     }
 
     /**
@@ -110,42 +79,34 @@ class UserDao implements UserDaoInterface
      * @param $id
      * @return updated user response
      */
-    public function updateUser($request, $id)
+    public function updateUser($request)
     {
-        /** Retrieve data from session */
-        $sessionUser = session()->get('update-user');
+        $updateUser = User::find($request->id);
+        $updateUser->name = $request->name;
+        $updateUser->email = $request->email;
+        $updateUser->type = $request->type;
 
-        /** Remove Session */
-        session()->forget('update-user');
+        if ($request->profile) {
+            $exploded = explode(',', $request->profile);
+            $decoded = base64_decode($exploded[1]);
+            
+            if (str_contains($exploded[0], 'jpeg')) {
+                $extension = 'jpg';
+            } else {
+                $extension = 'png';
+            }
 
-        /** Save data into database */
-        $updateUser = User::find($id);
-        $updateUser->name = $sessionUser['name'];
-        $updateUser->email = $sessionUser['email'];
-        $updateUser->type = $sessionUser['type'];
-        $updateUser->phone = $sessionUser['phone'];
-        $updateUser->address = $sessionUser['address'];
-        $updateUser->dob = $sessionUser['dob'];
-        if ($sessionUser['profile']) {
-            $updateUser->profile = $sessionUser['profile'];
+            $fileName = time().'.'.$extension;
+            $path = public_path().'/images/'.$fileName;
+            file_put_contents($path, $decoded);
+
+            $updateUser->profile = $fileName;
+            $updateUser->profile_path = env('APP_URL') . '/images/' . $fileName;
         }
-        $updateUser->updated_user_id = Auth::id();
+        
+        $updateUser->updated_user_id = $request->authID;
         $updateUser->updated_at = Carbon::now();
         return $updateUser->save();
-    }
-
-    /**
-     * Update User Confirmation
-     *
-     * @param $request
-     * @param $id
-     * @return profile image
-     */
-    public function updateUserConfirm($request, $id)
-    {
-        $updateUser = User::find($id);
-        $profile = $updateUser->profile;
-        return $profile;
     }
 
     /**
@@ -156,8 +117,8 @@ class UserDao implements UserDaoInterface
      */
     public function deleteUser($request)
     {
-        $deleteUser = User::find($request->input('deleteUserId'));
-        $deleteUser->deleted_user_id = Auth::id();
+        $deleteUser = User::find($request->userID);
+        $deleteUser->deleted_user_id = $request->authID;
         $deleteUser->deleted_at = Carbon::now();
         return $deleteUser->save();
     }
@@ -175,5 +136,38 @@ class UserDao implements UserDaoInterface
         $user->updated_user_id = Auth::id();
         $user->updated_at = Auth::id();
         return $user->save();
+    }
+
+    /** <web.php> */
+    public function getUpdateUser($id)
+    {
+        $user = User::find($id);
+        return $user;
+    }
+
+    /** <web.php> */
+    public function updateUserConfirm($request, $id)
+    {
+        $updateUser = User::find($id);
+        $profile = $updateUser->profile;
+        return $profile;
+    }
+    
+    /** <web.php> */
+    public function searchUser($keyword)
+    {
+        $userList = User::orderBy('id', 'desc')
+                    ->whereNull('deleted_user_id')
+                    ->where('name', 'like', "%{$keyword->name}%")
+                    ->when($keyword->email, function ($query) use ($keyword) {
+                        $query->where('email', 'like', "%{$keyword->email}%");
+                    })
+                    ->when($keyword->created_from, function ($query) use ($keyword) {
+                        $query->where('created_at', '=', $keyword->created_from);
+                    })
+                    ->when($keyword->created_to, function ($query) use ($keyword) {
+                        $query->where('updated_at', '=', $keyword->created_to);
+                    })->paginate(5);
+        return $userList;
     }
 }
