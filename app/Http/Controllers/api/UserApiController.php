@@ -27,18 +27,35 @@ class UserApiController extends Controller
         $this->userInterface = $userInterface;
     }
     
+    /**
+     * Get User List
+     *
+     * @return response with json obj
+     */
     public function getUserList()
     {
         $data = $this->userInterface->getUserList();
         return response()->json($data, 200);
     }
 
+    /**
+     * Get User Profile
+     *
+     * @param $id
+     * @return response with json obj
+     */
     public function getUserProfile($id)
     {
         $data = $this->userInterface->userProfile($id);
         return response()->json($data, 200);
     }
 
+    /**
+     * Create User Confirm
+     *
+     * @param Request $request
+     * @return response with json obj
+     */
     public function createUserConfirm(Request $request)
     {
         /** \Log::info($request->all()); */
@@ -46,12 +63,17 @@ class UserApiController extends Controller
             'name' => 'required|string|unique:users,name',
             'email'   => 'required|email|unique:users,email',
             'password' => 'required|confirmed|min:6',
-            'type' => 'required',
             'profile' => 'required'
         ]);
         return response()->json($request, 200);
     }
 
+    /**
+     * Create User
+     *
+     * @param Request $request
+     * @return response with json obj
+     */
     public function createUser(Request $request)
     {
         /** \Log::info($request->all()); */
@@ -59,6 +81,12 @@ class UserApiController extends Controller
         return response()->json($result, 200);
     }
 
+    /**
+     * Update User Confirm
+     *
+     * @param Request $request
+     * @return response with json obj
+     */
     public function updateUserConfirm(Request $request)
     {
         $request->validate([
@@ -69,6 +97,12 @@ class UserApiController extends Controller
         return response()->json($request, 200);
     }
 
+    /**
+    * Update User
+    *
+    * @param Request $request
+    * @return response with json obj
+    */
     public function updateUser(Request $request)
     {
         /** \Log::info($request->all()); */
@@ -76,12 +110,24 @@ class UserApiController extends Controller
         return response()->json($result, 200);
     }
 
-    public function deleteUser(Request $request)
+    /**
+    * Delete User
+    *
+    * @param $id
+    * @return response with json obj
+    */
+    public function deleteUser($id)
     {
-        $result = $this->userInterface->deleteUser($request);
+        $result = $this->userInterface->deleteUser($id);
         return response()->json($result, 200);
     }
 
+    /**
+    * Change Password
+    *
+    * @param $id
+    * @return response with json obj
+    */
     public function changePassword(Request $request)
     {
         $request->validate([
@@ -89,14 +135,11 @@ class UserApiController extends Controller
             'new_password' => 'required|min:6',
             'password_confirmation' => 'required|same:new_password'
         ]);
-        $user = User::find($request->userID);
+        $user = User::find(Auth::id());
         if (!Hash::check($request->old_password, $user->password)) {
             return response()->json(['message' => 'The old password field is incorrect'], 422);
         }
-        $user->password = Hash::make($request->new_password);
-        $user->updated_user_id = $request->userID;
-        $user->updated_at = Carbon::now();
-        $result = $user->save();
+        $result = $this->userInterface->changePassword($request);
         return response()->json($result, 200);
     }
 }

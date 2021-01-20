@@ -3,52 +3,44 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
-});
-
+// login
 Route::post('/auth/login', 'api\AuthApiController@login');
 
+// logout
 Route::middleware('auth:api')->post('/auth/logout', 'api\AuthApiController@logout');
 
-Route::middleware('auth:api')->get('/user/list', 'api\UserApiController@getUserList');
+// user
+Route::group(['middleware' => 'auth:api'], function () {
+    Route::get('/user/list', 'api\UserApiController@getUserList');
 
-Route::middleware('auth:api')->get('/user/profile/{id}', 'api\UserApiController@getUserProfile');
+    Route::get('/user/profile/{id}', 'api\UserApiController@getUserProfile');
 
-Route::middleware('auth:api')->post('/user/delete', 'api\UserApiController@deleteUser');
+    Route::post('/user/create', 'api\UserApiController@createUser');
 
-Route::middleware('auth:api')->post('/user/create-confirm', 'api\UserApiController@createUserConfirm');
+    Route::post('/user/create-confirm', 'api\UserApiController@createUserConfirm');
 
-Route::middleware('auth:api')->post('/user/create', 'api\UserApiController@createUser');
+    Route::post('/user/update', 'api\UserApiController@updateUser');
 
-Route::middleware('auth:api')->post('/user/update-confirm', 'api\UserApiController@updateUserConfirm');
+    Route::post('/user/update-confirm', 'api\UserApiController@updateUserConfirm');
 
-Route::middleware('auth:api')->post('/user/update', 'api\UserApiController@updateUser');
+    Route::delete('/user/delete/{id}', 'api\UserApiController@deleteUser');
 
-Route::middleware('auth:api')->post('/user/change-password', 'api\UserApiController@changePassword');
+    Route::post('/user/change-password', 'api\UserApiController@changePassword');
+});
 
+// post
+Route::group(['middleware' => 'auth:api'], function () {
+    Route::get('/post/list', 'api\PostApiController@getPostList');
 
-Route::middleware('auth:api')->get('/post/list', 'api\PostApiController@getPostList');
+    Route::post('/post/create', 'api\PostApiController@createPost');
 
-Route::middleware('auth:api')->get('/post/download', 'api\PostApiController@download');
+    Route::post('/post/create-confirm', 'api\PostApiController@createPostConfirm');
 
-Route::middleware('auth:api')->post('/post/create', 'api\PostApiController@createPost');
+    Route::post('/post/update', 'api\PostApiController@updatePost');
 
-Route::middleware('auth:api')->post('/post/create-confirm', 'api\PostApiController@createPostConfirm');
+    Route::post('/post/update-confirm', 'api\PostApiController@updatePostConfirm');
 
-Route::middleware('auth:api')->post('/post/update', 'api\PostApiController@updatePost');
+    Route::delete('/post/delete/{id}', 'api\PostApiController@deletePost');
 
-Route::middleware('auth:api')->post('/post/update-confirm', 'api\PostApiController@updatePostConfirm');
-
-Route::middleware('auth:api')->post('/post/delete', 'api\PostApiController@deletePost');
+    Route::post('/post/upload', 'api\PostApiController@upload');
+});

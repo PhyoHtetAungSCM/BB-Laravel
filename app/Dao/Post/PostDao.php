@@ -2,14 +2,15 @@
 
 namespace App\Dao\Post;
 
+use App\Post;
+use App\Contracts\Dao\Post\PostDaoInterface;
+
+use Carbon\Carbon;
+
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Pagination\Paginator;
-use Illuminate\Support\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-
-use App\Contracts\Dao\Post\PostDaoInterface;
-use App\Post;
-use Carbon\Carbon;
 
 /**
  * System Name: Bulletinboard
@@ -25,6 +26,7 @@ class PostDao implements PostDaoInterface
      */
     public function getPostList()
     {
+        $user = Auth::user();
         // all active post
         $activePost = Post::with('user')->where('status', 1)->get();
         // inactive but not deleted
@@ -47,8 +49,8 @@ class PostDao implements PostDaoInterface
         $post = new Post();
         $post->title = $request->title;
         $post->description = $request->description;
-        $post->create_user_id = $request->authID;
-        $post->updated_user_id = $request->authID;
+        $post->create_user_id = Auth::id();
+        $post->updated_user_id = Auth::id();
         return $post->save();
     }
 
@@ -64,8 +66,9 @@ class PostDao implements PostDaoInterface
         $updatePost = Post::find($request->id);
         $updatePost->title = $request->title;
         $updatePost->description = $request->description;
-        $updatePost->create_user_id = $request->authID;
-        $updatePost->updated_user_id = $request->authID;
+        $updatePost->status = $request->status;
+        $updatePost->create_user_id = Auth::id();
+        $updatePost->updated_user_id = Auth::id();
         $updatePost->updated_at = Carbon::now();
         return $updatePost->save();
     }
@@ -76,23 +79,23 @@ class PostDao implements PostDaoInterface
      * @param $request
      * @return deleted post response
      */
-    public function deletePost($request)
+    public function deletePost($id)
     {
-        $deletePost = Post::find($request->postID);
+        $deletePost = Post::find($id);
         $deletePost->status = 0;
-        $deletePost->deleted_user_id = $request->authID;
+        $deletePost->deleted_user_id = Auth::id();
         $deletePost->deleted_at = Carbon::now();
         return $deletePost->save();
     }
 
-    /** < web.php > */
+    // for web
     public function getUpdatePost($id)
     {
         $post = Post::find($id);
         return $post;
     }
 
-    /** < web.php > */
+    // for web
     public function paginate($items, $perPage = 5, $page = null, $options = [])
     {
         $page = $page ?: (Paginator::resolveCurrentPage() ?: 1);

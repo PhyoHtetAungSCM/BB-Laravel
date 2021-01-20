@@ -45,16 +45,6 @@ class UserService implements UserServiceInterface
     }
 
     /**
-     * Get Update User
-     *
-     * @return userDao's getUpdateUser function
-     */
-    public function getUpdateUser($id)
-    {
-        return $this->userDao->getUpdateUser($id);
-    }
-
-    /**
      * Create User
      *
      * @return userDao's createUser function
@@ -62,16 +52,6 @@ class UserService implements UserServiceInterface
     public function createUser($request)
     {
         return $this->userDao->createUser($request);
-    }
-
-    /**
-     * Search User
-     *
-     * @return userDao's searchUser function
-     */
-    public function searchUser($keyword)
-    {
-        return $this->userDao->searchUser($keyword);
     }
 
     /**
@@ -84,19 +64,14 @@ class UserService implements UserServiceInterface
         return $this->userDao->updateUser($request);
     }
 
-    public function updateUserConfirm($request, $id)
-    {
-        return $this->userDao->updateUserConfirm($request, $id);
-    }
-
     /**
      * Delete User
      *
      * @return userDao's deleteUser function
      */
-    public function deleteUser($request)
+    public function deleteUser($id)
     {
-        return $this->userDao->deleteUser($request);
+        return $this->userDao->deleteUser($id);
     }
 
     /**
@@ -107,5 +82,23 @@ class UserService implements UserServiceInterface
     public function changePassword($request)
     {
         return $this->userDao->changePassword($request);
+    }
+
+    // for web
+    public function getUpdateUser($id)
+    {
+        return $this->userDao->getUpdateUser($id);
+    }
+
+    // for web
+    public function searchUser($keyword)
+    {
+        return $this->userDao->searchUser($keyword);
+    }
+
+    // for web
+    public function updateUserConfirm($request, $id)
+    {
+        return $this->userDao->updateUserConfirm($request, $id);
     }
 }

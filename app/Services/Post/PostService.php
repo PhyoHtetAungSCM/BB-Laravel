@@ -35,17 +35,6 @@ class PostService implements PostServiceInterface
     }
 
     /**
-     * Get Update Post
-     *
-     * @param $id
-     * @return updated post model
-     */
-    public function getUpdatePost($id)
-    {
-        return $this->postDao->getUpdatePost($id);
-    }
-
-    /**
      * Create Post
      *
      * @param $request
@@ -74,8 +63,14 @@ class PostService implements PostServiceInterface
      * @param $request
      * @return boolean
      */
-    public function deletePost($request)
+    public function deletePost($id)
     {
-        return $this->postDao->deletePost($request);
+        return $this->postDao->deletePost($id);
+    }
+
+    // for web
+    public function getUpdatePost($id)
+    {
+        return $this->postDao->getUpdatePost($id);
     }
 }

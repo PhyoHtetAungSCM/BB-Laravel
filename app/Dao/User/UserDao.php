@@ -2,12 +2,13 @@
 
 namespace App\Dao\User;
 
+use App\User;
+use App\Contracts\Dao\User\UserDaoInterface;
+
+use Carbon\Carbon;
+
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
-use App\Contracts\Dao\User\UserDaoInterface;
-use App\User;
-use Carbon\Carbon;
 
 /**
  * System Name: Bulletinboard
@@ -47,13 +48,11 @@ class UserDao implements UserDaoInterface
     {
         $exploded = explode(',', $request->profile);
         $decoded = base64_decode($exploded[1]);
-        
         if (str_contains($exploded[0], 'jpeg')) {
             $extension = 'jpg';
         } else {
             $extension = 'png';
         }
-
         $fileName = time().'.'.$extension;
         $path = public_path().'/images/'.$fileName;
         file_put_contents($path, $decoded);
@@ -65,8 +64,8 @@ class UserDao implements UserDaoInterface
         $user->type = $request->type;
         $user->profile = $fileName;
         $user->profile_path = env('APP_URL') . '/images/' . $fileName;
-        $user->create_user_id = $request->authID;
-        $user->updated_user_id = $request->authID;
+        $user->create_user_id = Auth::id();
+        $user->updated_user_id = Auth::id();
         $user->created_at = Carbon::now();
         $user->updated_at = Carbon::now();
         return $user->save();
@@ -89,22 +88,19 @@ class UserDao implements UserDaoInterface
         if ($request->profile) {
             $exploded = explode(',', $request->profile);
             $decoded = base64_decode($exploded[1]);
-            
             if (str_contains($exploded[0], 'jpeg')) {
                 $extension = 'jpg';
             } else {
                 $extension = 'png';
             }
-
             $fileName = time().'.'.$extension;
             $path = public_path().'/images/'.$fileName;
             file_put_contents($path, $decoded);
-
             $updateUser->profile = $fileName;
             $updateUser->profile_path = env('APP_URL') . '/images/' . $fileName;
         }
         
-        $updateUser->updated_user_id = $request->authID;
+        $updateUser->updated_user_id = Auth::id();
         $updateUser->updated_at = Carbon::now();
         return $updateUser->save();
     }
@@ -115,10 +111,10 @@ class UserDao implements UserDaoInterface
      * @param $request
      * @return deleted user response
      */
-    public function deleteUser($request)
+    public function deleteUser($id)
     {
-        $deleteUser = User::find($request->userID);
-        $deleteUser->deleted_user_id = $request->authID;
+        $deleteUser = User::find($id);
+        $deleteUser->deleted_user_id = Auth::id();
         $deleteUser->deleted_at = Carbon::now();
         return $deleteUser->save();
     }
@@ -134,18 +130,18 @@ class UserDao implements UserDaoInterface
         $user = User::find(Auth::id());
         $user->password = Hash::make($request->new_password);
         $user->updated_user_id = Auth::id();
-        $user->updated_at = Auth::id();
+        $user->updated_at = Carbon::now();
         return $user->save();
     }
 
-    /** <web.php> */
+    // for web
     public function getUpdateUser($id)
     {
         $user = User::find($id);
         return $user;
     }
 
-    /** <web.php> */
+    // for web
     public function updateUserConfirm($request, $id)
     {
         $updateUser = User::find($id);
@@ -153,7 +149,7 @@ class UserDao implements UserDaoInterface
         return $profile;
     }
     
-    /** <web.php> */
+    // for web
     public function searchUser($keyword)
     {
         $userList = User::orderBy('id', 'desc')
