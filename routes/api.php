@@ -9,6 +9,23 @@ Route::post('/auth/login', 'api\AuthApiController@login');
 // logout
 Route::middleware('auth:api')->post('/auth/logout', 'api\AuthApiController@logout');
 
+// post
+Route::group(['middleware' => 'auth:api'], function () {
+    Route::get('/post/list', 'api\PostApiController@getPostList');
+
+    Route::post('/post/create', 'api\PostApiController@createPost');
+
+    Route::post('/post/create-confirm', 'api\PostApiController@createPostConfirm');
+
+    Route::post('/post/update', 'api\PostApiController@updatePost');
+
+    Route::post('/post/update-confirm', 'api\PostApiController@updatePostConfirm');
+
+    Route::delete('/post/delete/{id}', 'api\PostApiController@deletePost');
+
+    Route::post('/post/upload', 'api\PostApiController@upload');
+});
+
 // user
 Route::group(['middleware' => 'auth:api'], function () {
     Route::get('/user/list', 'api\UserApiController@getUserList');
@@ -26,21 +43,4 @@ Route::group(['middleware' => 'auth:api'], function () {
     Route::delete('/user/delete/{id}', 'api\UserApiController@deleteUser');
 
     Route::post('/user/change-password', 'api\UserApiController@changePassword');
-});
-
-// post
-Route::group(['middleware' => 'auth:api'], function () {
-    Route::get('/post/list', 'api\PostApiController@getPostList');
-
-    Route::post('/post/create', 'api\PostApiController@createPost');
-
-    Route::post('/post/create-confirm', 'api\PostApiController@createPostConfirm');
-
-    Route::post('/post/update', 'api\PostApiController@updatePost');
-
-    Route::post('/post/update-confirm', 'api\PostApiController@updatePostConfirm');
-
-    Route::delete('/post/delete/{id}', 'api\PostApiController@deletePost');
-
-    Route::post('/post/upload', 'api\PostApiController@upload');
 });
